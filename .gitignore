@@ -1,0 +1,15 @@
+# Personal data: never commit
+profile/
+output/
+data/
+*.docx
+!examples/*.docx
+
+# Claude Code local files
+.claude/settings.local.json
+CLAUDE.local.md
+
+# Python
+__pycache__/
+*.pyc
+.venv/

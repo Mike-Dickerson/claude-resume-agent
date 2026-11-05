@@ -1,0 +1,24 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/scripts/check_profile.py\""
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(python scripts/*)",
+      "Read(profile/**)",
+      "Read(data/**)",
+      "Edit(profile/**)",
+      "Edit(data/**)",
+      "WebFetch(domain:www.dice.com)"
+    ]
+  }
+}

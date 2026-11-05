@@ -1,0 +1,35 @@
+{
+  "output": "output/Senior_Data_Engineer_11052026.docx",
+  "name": "Jordan Example",
+  "contact": "Springfield, IL (Remote)  |  jordan@example.com  |  (555) 555-0100  |  linkedin.com/in/jordan-example",
+  "headline": "Senior Data Engineer  |  Python · SQL · Snowflake · Airflow · AWS",
+  "summary": "Data engineer with 10+ years building pipelines and warehouses that business teams rely on every morning. Designed and built a Snowflake platform that cut nightly load time from 6 hours to 40 minutes. Comfortable from source-system SQL through orchestration, testing, and the dashboards people actually read.",
+  "skills": [
+    ["Languages", "Python, SQL, Bash"],
+    ["Data", "Snowflake, PostgreSQL, SQL Server; dbt; ETL/ELT design; data quality testing"],
+    ["Orchestration", "Airflow, cron, event-driven Lambda jobs"],
+    ["Cloud", "AWS (S3, Lambda, IAM), Docker, CI/CD"]
+  ],
+  "experience": [
+    {
+      "title": "Example Analytics Co. – Senior Data Engineer",
+      "dates": "2019 – Present",
+      "location": "Remote",
+      "bullets": [
+        ["Warehouse migration:", "Moved 140 SQL Server jobs to Snowflake and dbt, cutting nightly load time from 6 hours to 40 minutes."],
+        ["Reliability:", "Added row-count and freshness checks that caught 30+ upstream failures before reports went out."]
+      ]
+    },
+    {
+      "title": "Example Consulting LLC – Owner / Lead Engineer",
+      "dates": "2015 – 2019",
+      "intro": "Independent consultancy delivering data and integration projects.",
+      "subsections": [
+        {"title": "Client: Regional Retailer", "bullets": [["", "Built an inventory feed from ERP to e-commerce site (Python, SQL Server)."]]}
+      ]
+    }
+  ],
+  "sections": [
+    {"heading": "Education & Certifications", "paragraphs": ["B.S., Computer Science – Example State University  |  AWS Certified Data Engineer"]}
+  ]
+}

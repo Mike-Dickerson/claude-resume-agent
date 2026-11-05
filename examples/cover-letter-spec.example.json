@@ -1,0 +1,15 @@
+{
+  "output": "output/Senior_Data_Engineer_CoverLetter_11052026.docx",
+  "name": "Jordan Example",
+  "contact": "Springfield, IL (Remote)  |  jordan@example.com  |  (555) 555-0100",
+  "date": "November 5, 2026",
+  "recipient": ["Hiring Team", "Acme Corp"],
+  "greeting": "Dear Hiring Team,",
+  "paragraphs": [
+    "Your Senior Data Engineer role asks for someone who can move a legacy warehouse to Snowflake without breaking the morning reports. That is the last project I finished.",
+    "At Example Analytics I moved 140 SQL Server jobs to Snowflake and dbt and cut nightly load time from 6 hours to 40 minutes. I also added freshness and row-count checks that caught more than 30 upstream failures before anyone saw a bad number.",
+    "I work remotely, and I'm available for a W2 contract or full-time role starting in two weeks.",
+    "I'd welcome a short call to talk through your migration plans."
+  ],
+  "closing": "Sincerely,"
+}

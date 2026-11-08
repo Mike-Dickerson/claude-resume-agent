@@ -1,7 +1,8 @@
 # Resume Agent launcher (Windows PowerShell)
-# Usage:  .\start.ps1            start a new session
-#         .\start.ps1 -Continue  pick up the last session
-param([switch]$Continue)
+# Usage:  .\start.ps1            start a new session in the terminal
+#         .\start.ps1 -Continue  pick up the last terminal session
+#         .\start.ps1 -Web       open the web app instead (http://127.0.0.1:8765)
+param([switch]$Continue, [switch]$Web)
 
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
@@ -14,7 +15,7 @@ if (-not $py) {
     Write-Host "Python 3.10+ is required: https://www.python.org/downloads/ (check 'Add to PATH')." -ForegroundColor Red
     exit 1
 }
-python -c "import docx, pypdf" 2>$null
+python -c "import docx, pypdf, fastapi, uvicorn, multipart, httpx" 2>$null
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Installing Python packages..."
     python -m pip install --quiet -r requirements.txt
@@ -36,4 +37,6 @@ if ($status -notmatch '"loggedIn":\s*true') {
 }
 
 # 4. Go
-if ($Continue) { claude --continue } else { claude "Hi" }
+if ($Web) { python web/server.py }
+elseif ($Continue) { claude --continue }
+else { claude "Hi" }

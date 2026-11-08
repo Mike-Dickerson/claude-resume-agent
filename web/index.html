@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resume Agent</title>
+<style>
+  :root {
+    --bg: #f6f7f8; --panel: #ffffff; --text: #1d2125; --muted: #66707a; --line: #e2e5e8;
+    --accent: #1e5e53; --accent-text: #ffffff; --accent-soft: #e4f0ed; --danger: #a33a2c;
+    --user: #1e5e53; --user-text: #ffffff; --bot: #f0f2f4; --code: #eef0f2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #131617; --panel: #1b1f21; --text: #e6e9eb; --muted: #98a2ab; --line: #2c3236;
+      --accent: #4fb3a0; --accent-text: #0b1513; --accent-soft: #1f3330; --danger: #e07a6b;
+      --user: #2f7d6f; --user-text: #ffffff; --bot: #242a2d; --code: #2a3135; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+    border-bottom: 1px solid var(--line); background: var(--panel); flex-wrap: wrap; }
+  header h1 { font-size: 17px; margin: 0; color: var(--accent); }
+  .chip { font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 2px 10px; }
+  .chip.ok { color: var(--accent); border-color: var(--accent); }
+  .chip.warn { color: var(--danger); border-color: var(--danger); }
+  .spacer { flex: 1; }
+  button { font: inherit; cursor: pointer; border-radius: 6px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--text); padding: 5px 10px; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  button.small { padding: 2px 8px; font-size: 12px; }
+  button.danger:hover { border-color: var(--danger); color: var(--danger); }
+  button:disabled { opacity: .5; cursor: default; }
+  main { display: grid; grid-template-columns: minmax(300px, 420px) 1fr; gap: 16px; padding: 16px;
+    height: calc(100vh - 58px); }
+  .col { display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    display: flex; flex-direction: column; min-height: 0; }
+  .card > h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted);
+    margin: 0; padding: 10px 12px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 8px; }
+  .card > h2 .path { text-transform: none; letter-spacing: 0; font-weight: 400; font-family: ui-monospace, monospace; font-size: 11px; }
+  .files { overflow: auto; flex: 1; min-height: 60px; }
+  .file { display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-bottom: 1px solid var(--line); }
+  .file:last-child { border-bottom: 0; }
+  .file .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file .meta { color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .empty { color: var(--muted); padding: 14px 12px; }
+  .drop { margin: 10px 12px; border: 1.5px dashed var(--line); border-radius: 8px; padding: 12px;
+    text-align: center; color: var(--muted); cursor: pointer; }
+  .drop.over { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+  #chat { flex: 1; }
+  #messages { flex: 1; overflow: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .msg { max-width: 85%; padding: 9px 12px; border-radius: 10px; white-space: pre-wrap; word-wrap: break-word; }
+  .msg.user { align-self: flex-end; background: var(--user); color: var(--user-text); }
+  .msg.bot { align-self: flex-start; background: var(--bot); }
+  .msg.err { align-self: flex-start; background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+  .msg code { background: var(--code); padding: 0 4px; border-radius: 4px; font-size: 12.5px; }
+  .msg a { color: inherit; }
+  .tool { align-self: flex-start; color: var(--muted); font-size: 12px; font-family: ui-monospace, monospace; }
+  .banner { background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 10px; padding: 12px; }
+  .banner p { margin: 0 0 8px; }
+  form#send { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--line); }
+  textarea, input { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line);
+    border-radius: 6px; padding: 7px 9px; width: 100%; }
+  textarea { resize: none; height: 42px; }
+  .quick { display: flex; gap: 6px; padding: 0 10px 10px; flex-wrap: wrap; }
+  dialog { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--text);
+    width: min(520px, calc(100vw - 32px)); padding: 0; }
+  dialog::backdrop { background: rgba(0,0,0,.45); }
+  dialog .body { padding: 16px; display: grid; gap: 10px; }
+  dialog h3 { margin: 0; }
+  dialog .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  dialog label { display: grid; gap: 3px; font-size: 12px; color: var(--muted); }
+  dialog .check { display: flex; gap: 8px; align-items: flex-start; color: var(--text); font-size: 13px; }
+  dialog .check input { width: auto; margin-top: 3px; }
+  dialog .actions { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
+  .note { color: var(--muted); font-size: 12px; margin: 0; }
+  #mrcResult { white-space: pre-wrap; }
+  .toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--text);
+    color: var(--bg); padding: 7px 14px; border-radius: 8px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: .92; }
+  @media (max-width: 820px) {
+    main { grid-template-columns: 1fr; height: auto; }
+    #chat { height: 70vh; }
+    .files { max-height: 260px; }
+    dialog .row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Resume Agent</h1>
+  <span id="authChip" class="chip">checking sign-in…</span>
+  <span id="profileChip" class="chip">profile…</span>
+  <span class="spacer"></span>
+  <button id="mrcBtn" class="primary">Create MyResume.Chat account</button>
+</header>
+
+<main>
+  <div class="col">
+    <section class="card" style="flex: 1">
+      <h2>Documents <span class="path">profile/originals</span><span class="spacer"></span>
+        <button class="small" id="uploadBtn">Upload</button></h2>
+      <div class="drop" id="drop">Drop resumes, LinkedIn PDFs, or project lists here (.docx, .pdf, .md, .txt)</div>
+      <input type="file" id="fileInput" multiple accept=".docx,.pdf,.md,.txt,.doc" hidden>
+      <div class="files" id="documents"></div>
+    </section>
+    <section class="card" style="flex: 1.2">
+      <h2>Resumes <span class="path">output</span><span class="spacer"></span>
+        <button class="small" id="refreshBtn" title="Refresh">Refresh</button></h2>
+      <div class="files" id="resumes"></div>
+    </section>
+  </div>
+
+  <section class="card" id="chat">
+    <h2>Agent <span class="spacer"></span><button class="small" id="newChat">New chat</button></h2>
+    <div id="messages"></div>
+    <div class="quick">
+      <button class="small" data-say="/find-jobs">Find jobs</button>
+      <button class="small" data-say="/resume ">Resume for a posting…</button>
+      <button class="small" data-say="/cover-letter">Cover letter</button>
+      <button class="small" data-say="/applied">Applications</button>
+      <button class="small" data-say="/documents">Update documents</button>
+    </div>
+    <form id="send">
+      <textarea id="input" placeholder="Paste a job link, or ask: find me 3 remote contract jobs…"></textarea>
+      <button class="primary" id="sendBtn">Send</button>
+    </form>
+  </section>
+</main>
+
+<dialog id="mrc">
+  <form method="dialog" id="mrcForm">
+    <div class="body">
+      <h3>Create your MyResume.Chat account</h3>
+      <p class="note">Free: your documents go into your MyResume.Chat profile, and you get a personal
+        chatbot link that recruiters can ask about your experience. You'll get a welcome email with that link
+        and a button to verify your address.</p>
+      <div class="row">
+        <label>First name<input name="first_name" required autocomplete="given-name"></label>
+        <label>Last name<input name="last_name" required autocomplete="family-name"></label>
+      </div>
+      <div class="row">
+        <label>Email<input name="email" type="email" required autocomplete="email"></label>
+        <label>Password<input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
+      </div>
+      <div class="row">
+        <label>Phone<input name="phone" type="tel" required autocomplete="tel"></label>
+        <label>ZIP / postal code<input name="zip_code" required autocomplete="postal-code"></label>
+      </div>
+      <label>Job titles you want (comma separated)<input name="titles" placeholder="AI Engineer, Solutions Architect"></label>
+      <label>About you (optional)<textarea name="about" style="height: 60px"></textarea></label>
+      <label class="check"><input type="checkbox" name="share_with_recruiters" checked> Let recruiters find my profile</label>
+      <label class="check"><input type="checkbox" name="agree" required> I accept the
+        <a href="https://myresume.chat/user-agreement" target="_blank" rel="noopener">MyResume.Chat user agreement</a></label>
+      <p class="note" id="mrcDocs"></p>
+      <p id="mrcResult"></p>
+    </div>
+    <div class="actions">
+      <button value="cancel" formnovalidate>Close</button>
+      <button class="primary" id="mrcSubmit" value="submit">Create account</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const size = (b) => b < 1024 ? b + " B" : b < 1048576 ? (b / 1024).toFixed(0) + " KB" : (b / 1048576).toFixed(1) + " MB";
+const when = (t) => new Date(t * 1000).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+let busy = false, docCount = 0;
+
+function toast(text) { const t = $("#toast"); t.textContent = text; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 1800); }
+
+async function api(url, opts) {
+  const r = await fetch(url, opts);
+  if (!r.ok) { let d = r.statusText; try { d = (await r.json()).detail || d; } catch {} throw new Error(d); }
+  return r.json();
+}
+
+// ---- file lists ----
+async function loadFiles() {
+  const [docs, outs] = await Promise.all([api("/api/files/documents"), api("/api/files/resumes")]);
+  docCount = docs.length;
+  $("#documents").innerHTML = docs.length ? docs.map((f) => `
+    <div class="file"><span class="name" title="${esc(f.name)}">${esc(f.name)}</span>
+      <span class="meta">${size(f.size)} · ${when(f.modified)}</span>
+      <a href="/api/files/documents/${encodeURIComponent(f.name)}"><button class="small">Download</button></a>
+      <button class="small danger" data-del="${esc(f.name)}">Remove</button></div>`).join("")
+    : `<div class="empty">No documents yet. Add your resume to get started.</div>`;
+  $("#resumes").innerHTML = outs.length ? outs.map((f) => `
+    <div class="file"><span class="name" title="${esc(f.name)}">${esc(f.name)}</span>
+      <span class="meta">${when(f.modified)}</span>
+      <button class="small" data-copy="${esc(f.name)}">Copy</button>
+      <a href="/api/files/resumes/${encodeURIComponent(f.name)}"><button class="small">Download</button></a></div>`).join("")
+    : `<div class="empty">Resumes and cover letters the agent builds show up here.</div>`;
+}
+
+$("#documents").addEventListener("click", async (e) => {
+  const name = e.target.dataset.del;
+  if (!name) return;
+  if (!confirm(`Remove ${name} from your documents? (Your master inventory keeps what was already read from it.)`)) return;
+  await api(`/api/files/documents/${encodeURIComponent(name)}`, { method: "DELETE" });
+  loadFiles();
+});
+
+$("#resumes").addEventListener("click", async (e) => {
+  const name = e.target.dataset.copy;
+  if (!name) return;
+  try {
+    const { text } = await api(`/api/files/resumes/${encodeURIComponent(name)}/text`);
+    await navigator.clipboard.writeText(text);
+    toast("Copied resume text");
+  } catch (err) { toast("Copy failed: " + err.message); }
+});
+
+async function upload(files) {
+  if (!files.length) return;
+  const fd = new FormData();
+  [...files].forEach((f) => fd.append("files", f));
+  try {
+    const { saved } = await api("/api/files/documents", { method: "POST", body: fd });
+    toast(`Added ${saved.length} document${saved.length > 1 ? "s" : ""}`);
+    await loadFiles();
+    offerImport(saved);
+  } catch (err) { toast(err.message); }
+}
+$("#uploadBtn").onclick = () => $("#fileInput").click();
+$("#drop").onclick = () => $("#fileInput").click();
+$("#fileInput").onchange = (e) => { upload(e.target.files); e.target.value = ""; };
+const drop = $("#drop");
+["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", (e) => upload(e.dataTransfer.files));
+$("#refreshBtn").onclick = loadFiles;
+
+// ---- chat ----
+function render(md) {
+  let h = esc(md);
+  h = h.replace(/```([\s\S]*?)```/g, (_, c) => `<code>${c.trim()}</code>`);
+  h = h.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+  h = h.replace(/\*\*([^*\n]+)\*\*/g, "<b>$1</b>");
+  h = h.replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  h = h.replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, '$1<a href="$2" target="_blank" rel="noopener">$2</a>');
+  return h;
+}
+function add(cls, html) {
+  const d = document.createElement("div");
+  d.className = cls; d.innerHTML = html;
+  $("#messages").appendChild(d);
+  $("#messages").scrollTop = $("#messages").scrollHeight;
+  return d;
+}
+
+async function send(text) {
+  text = text.trim();
+  if (!text || busy) return;
+  busy = true; $("#sendBtn").disabled = true;
+  add("msg user", esc(text));
+  const thinking = add("tool", "working…");
+  try {
+    const r = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text }) });
+    const reader = r.body.getReader(), dec = new TextDecoder();
+    let buf = "";
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i;
+      while ((i = buf.indexOf("\n\n")) >= 0) {
+        const line = buf.slice(0, i).replace(/^data: /, ""); buf = buf.slice(i + 2);
+        let ev; try { ev = JSON.parse(line); } catch { continue; }
+        if (ev.type === "text") $("#messages").insertBefore(Object.assign(document.createElement("div"),
+          { className: "msg bot", innerHTML: render(ev.text) }), thinking);
+        else if (ev.type === "tool") $("#messages").insertBefore(Object.assign(document.createElement("div"),
+          { className: "tool", textContent: "· " + ev.text }), thinking);
+        else if (ev.type === "error") $("#messages").insertBefore(Object.assign(document.createElement("div"),
+          { className: "msg err", textContent: ev.text }), thinking);
+        $("#messages").scrollTop = $("#messages").scrollHeight;
+      }
+    }
+  } catch (err) { add("msg err", esc("Lost connection to the agent: " + err.message)); }
+  thinking.remove();
+  busy = false; $("#sendBtn").disabled = false;
+  loadFiles(); loadStatus();
+}
+
+$("#send").onsubmit = (e) => { e.preventDefault(); const t = $("#input").value; $("#input").value = ""; send(t); };
+$("#input").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("#send").requestSubmit(); } });
+document.querySelectorAll("[data-say]").forEach((b) => b.onclick = () => {
+  const say = b.dataset.say;
+  if (say.endsWith(" ")) { $("#input").value = say; $("#input").focus(); } else send(say);
+});
+$("#newChat").onclick = async () => { if (busy) return; await api("/api/chat/reset", { method: "POST" }); $("#messages").innerHTML = ""; greet(); };
+
+function offerImport(names) {
+  const b = add("banner", `<p>Added ${names.map(esc).join(", ")}. Want the agent to read ${names.length > 1 ? "them" : "it"} into your profile?</p>`);
+  const btn = Object.assign(document.createElement("button"), { className: "primary", textContent: "Add to my profile" });
+  btn.onclick = () => { b.remove(); send("/documents " + names.map((n) => "profile/originals/" + n).join(" ")); };
+  b.appendChild(btn);
+}
+
+let status = null;
+async function loadStatus() {
+  try { status = await api("/api/status"); } catch { return; }
+  const a = $("#authChip"), p = $("#profileChip");
+  if (!status.claude_installed) { a.className = "chip warn"; a.textContent = "Claude Code not installed"; }
+  else if (status.signed_in === false) { a.className = "chip warn"; a.textContent = "Not signed in: run start.ps1"; }
+  else { a.className = "chip ok"; a.textContent = "Claude signed in"; }
+  p.className = "chip " + (status.profile.ready ? "ok" : "warn");
+  p.textContent = status.profile.ready ? "Profile ready" : "Profile not set up";
+}
+
+function greet() {
+  if (status && !status.profile.ready) {
+    const b = add("banner", `<p><b>Welcome.</b> I build tailored resumes only from your own documents.
+      Add your resume (and any older ones or a LinkedIn PDF) on the left, then set up your profile.</p>`);
+    const btn = Object.assign(document.createElement("button"), { className: "primary", textContent: "Set up my profile" });
+    btn.onclick = () => { b.remove(); send("/documents"); };
+    b.appendChild(btn);
+  } else {
+    add("msg bot", render("Ready. Paste a job link for a tailored resume, or try **Find jobs**."));
+  }
+}
+
+// ---- MyResume.Chat ----
+$("#mrcBtn").onclick = () => {
+  $("#mrcResult").textContent = "";
+  $("#mrcDocs").textContent = docCount
+    ? `Your ${docCount} document${docCount > 1 ? "s" : ""} will be copied to your new profile (.docx, .pdf, .txt, up to 10).`
+    : "Tip: add your documents first so they're copied into your new profile.";
+  $("#mrc").showModal();
+};
+$("#mrcForm").addEventListener("submit", async (e) => {
+  if (e.submitter?.value !== "submit") return;
+  e.preventDefault();
+  const form = e.target;
+  if (!form.reportValidity()) return;
+  const data = Object.fromEntries(new FormData(form));
+  data.agree = form.agree.checked; data.share_with_recruiters = form.share_with_recruiters.checked;
+  $("#mrcSubmit").disabled = true;
+  $("#mrcResult").textContent = "Creating your account and copying documents (each file gets a virus scan, so this can take a minute)…";
+  try {
+    const r = await api("/api/mrc/signup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+    const ok = r.uploads.filter((u) => u.ok).length, bad = r.uploads.filter((u) => !u.ok);
+    let msg = `Account created. Check ${r.email} for your welcome email with your chatbot link and a verify button.\n` +
+      `${ok} of ${r.uploads.length} documents copied.`;
+    if (bad.length) msg += "\nNot copied: " + bad.map((u) => u.file).join(", ");
+    if (r.skipped.length) msg += "\nSkipped (.md isn't accepted by MyResume.Chat): " + r.skipped.join(", ");
+    $("#mrcResult").textContent = msg;
+    form.password.value = "";
+  } catch (err) {
+    $("#mrcResult").textContent = "Couldn't create the account: " + err.message;
+  }
+  $("#mrcSubmit").disabled = false;
+});
+
+loadFiles();
+loadStatus().then(greet);
+setInterval(loadFiles, 15000);
+</script>
+</body>
+</html>

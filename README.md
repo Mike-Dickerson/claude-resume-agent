@@ -32,6 +32,15 @@ The launcher checks Python, Claude Code, and your sign-in, then opens the agent.
 
 To pick up where you left off: `.\start.ps1 -Continue` (or `./start.sh --continue`).
 
+## Web app
+
+Prefer a browser? Run `.\start.ps1 -Web` (or `./start.sh --web`), and it opens http://127.0.0.1:8765. It runs only on your own computer.
+
+- **Documents:** drag in your resumes and other files, then download or remove them. New uploads offer an "Add to my profile" button that has the agent read them in.
+- **Resumes:** everything the agent builds. Use **Copy** to put a resume's text on your clipboard (for paste-in application forms), or download the `.docx`.
+- **Agent chat:** the same agent and commands as the terminal, with quick buttons for Find jobs, Resume, Cover letter, and more.
+- **Create MyResume.Chat account:** a free [MyResume.Chat](https://myresume.chat) profile. Your documents are copied into it, and you get a welcome email with your personal resume chatbot link that recruiters can ask about your experience. Your password goes straight to MyResume.Chat over HTTPS and is never saved here.
+
 ## Commands
 
 | Command | What it does |
